@@ -11,6 +11,7 @@ const BookingPage = () => {
   const [activeCategory, setActiveCategory] = useState('Regular');
   const [selectedPlan, setSelectedPlan] = useState('Half Day');
   const [submitted, setSubmitted] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   // Ensure page starts at top
   useEffect(() => {
@@ -140,20 +141,47 @@ const BookingPage = () => {
           <div className="lg:col-span-7">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-8 md:p-12 rounded-[3.5rem] border-2 border-gray-100 shadow-2xl shadow-gray-100/50 relative overflow-hidden">
               {!submitted ? (
-                <form onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }} className="space-y-6 relative z-10">
+                <form onSubmit={async (e) => { 
+    e.preventDefault(); 
+    setIsSending(true); 
+    
+    const formData = new FormData(e.target);
+    formData.append("Service Category", activeCategory);
+    formData.append("Selected Plan", selectedPlan);
+
+    try {
+      const response = await fetch("https://formspree.io/f/xykprooo", {
+        method: "POST",
+        body: formData,
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+      } else {
+        alert("Submission failed. Please try again.");
+      }
+    } catch (error) {
+      alert("Network error.");
+    } finally {
+      setIsSending(false);
+    }
+  }} 
+  className="space-y-6 relative z-10" // ISKO MAT HATANA (Keep this!)
+>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest ml-4 text-gray-400">Your Name</label>
                       <div className="relative">
                         <User className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                        <input required placeholder="Enter Full Name" className="w-full bg-gray-50 rounded-2xl py-5 pl-14 pr-6 outline-none border-2 border-transparent focus:border-yellow-400 focus:bg-white transition-all font-bold" />
+                        <input name ="Full Name" required placeholder="Enter Full Name" className="w-full bg-gray-50 rounded-2xl py-5 pl-14 pr-6 outline-none border-2 border-transparent focus:border-yellow-400 focus:bg-white transition-all font-bold" />
                       </div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest ml-4 text-gray-400">Email Contact</label>
                       <div className="relative">
                         <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                        <input required type="email" placeholder="email@company.com" className="w-full bg-gray-50 rounded-2xl py-5 pl-14 pr-6 outline-none border-2 border-transparent focus:border-yellow-400 focus:bg-white transition-all font-bold" />
+                        <input name ="Email Address" required type="email" placeholder="email@company.com" className="w-full bg-gray-50 rounded-2xl py-5 pl-14 pr-6 outline-none border-2 border-transparent focus:border-yellow-400 focus:bg-white transition-all font-bold" />
                       </div>
                     </div>
                   </div>
@@ -163,14 +191,14 @@ const BookingPage = () => {
                       <label className="text-[10px] font-black uppercase tracking-widest ml-4 text-gray-400">Preferred Date</label>
                       <div className="relative">
                         <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                        <input required type="date" className="w-full bg-gray-50 rounded-2xl py-5 pl-14 pr-6 outline-none border-2 border-transparent focus:border-yellow-400 focus:bg-white transition-all font-bold" />
+                        <input name ="Booking date" required type="date" className="w-full bg-gray-50 rounded-2xl py-5 pl-14 pr-6 outline-none border-2 border-transparent focus:border-yellow-400 focus:bg-white transition-all font-bold" />
                       </div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest ml-4 text-gray-400">Time Slot</label>
                       <div className="relative">
                         <Clock className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                        <select className="w-full bg-gray-50 rounded-2xl py-5 pl-14 pr-6 outline-none border-2 border-transparent focus:border-yellow-400 focus:bg-white transition-all font-bold appearance-none">
+                        <select name ="Time Slot" className="w-full bg-gray-50 rounded-2xl py-5 pl-14 pr-6 outline-none border-2 border-transparent focus:border-yellow-400 focus:bg-white transition-all font-bold appearance-none">
                           <option>Morning (10AM - 2PM)</option>
                           <option>Evening (3PM - 7PM)</option>
                           <option>Full Day Session</option>
@@ -183,13 +211,18 @@ const BookingPage = () => {
                     <label className="text-[10px] font-black uppercase tracking-widest ml-4 text-gray-400">Vision for this {activeCategory} Shoot</label>
                     <div className="relative">
                       <MessageSquare className="absolute left-5 top-6 text-gray-400" size={18} />
-                      <textarea placeholder={`What are we filming for your ${selectedPlan} session?`} className="w-full bg-gray-50 rounded-2xl py-5 pl-14 pr-6 outline-none border-2 border-transparent focus:border-yellow-400 focus:bg-white transition-all font-bold h-32 resize-none"></textarea>
+                      <textarea name="Vision/Notes" placeholder={`What are we filming for your ${selectedPlan} session?`} className="w-full bg-gray-50 rounded-2xl py-5 pl-14 pr-6 outline-none border-2 border-transparent focus:border-yellow-400 focus:bg-white transition-all font-bold h-32 resize-none"></textarea>
                     </div>
                   </div>
 
-                  <button className="w-full bg-black text-white py-6 rounded-2xl font-black uppercase tracking-[0.2em] text-sm hover:bg-yellow-400 hover:text-black hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-black/10 flex items-center justify-center gap-3 group">
-                    Confirm {selectedPlan} Booking
-                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  <button 
+                    disabled={isSending} 
+                    className={`w-full py-6 rounded-2xl font-black uppercase tracking-[0.2em] text-sm transition-all shadow-xl flex items-center justify-center gap-3 group ${
+                      isSending ? 'bg-gray-400 cursor-not-allowed' : 'bg-black text-white hover:bg-yellow-400 hover:text-black hover:scale-[1.02]'
+                    }`}
+                  >
+                    {isSending ? "Sending Request..." : `Confirm ${selectedPlan} Booking`}
+                    {!isSending && <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
                   </button>
                 </form>
               ) : (
